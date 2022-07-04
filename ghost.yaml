@@ -1,0 +1,96 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ghostdb
+  namespace: gh
+type: Opaque
+data:
+  USER_NAME: cm9vdA==
+  PASSWORD: YWRtaW4=
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ghost
+  namespace: gh
+  labels:
+    app: ghost
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ghost
+  template:
+    metadata:
+      labels:
+        app: ghost
+    spec:
+      containers:
+      - name: con-ghost
+        image: ghost:4-alpine
+        volumeMounts:
+        - name: ghost-pvc-deploy
+          path: "/var/lib/ghost/content"
+        ports:
+        - containerPort: 2368
+        env:
+        - name: database__client
+          value: mysql
+        - name: database__connection__host
+          value: db
+        - name: database__connection__user
+          valueFrom:
+            name: ghostdb
+            value: USER_NAME
+        - name: database__connection__password
+          valueFrom:
+            name: ghostdb
+            value: PASSWORD
+        - name: database__connection__database
+          value: ghost-db
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "300m"
+    volumes:
+    - name: ghost-pvc-deploy
+      persistentVolumeClaim:
+        claimName: ghost-pvc
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: ghost-pv
+  namespace: gh
+  label:
+    pv: gh
+spec:
+  capacity:
+   storage: 2Gi
+  volumeMode: Filesystem
+  accessModes:
+   - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: slow
+  hostPath:
+    path: "/mnt/hgfs/ghost-data/"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ghost-pvc
+  namespace: gh
+spec:
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: slow
+  selector:
+    matchLabels:
+      pv: gh
