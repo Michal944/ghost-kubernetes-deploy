@@ -8,10 +8,8 @@ spec:
   selector:
     app: ghost
   ports:
-    - name: ghostport
+    - port: 2368
       protocol: TCP
-      port: 2368
-      targetPort: 2368
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -32,13 +30,15 @@ spec:
     spec:
       containers:
       - name: con-ghost
-        image: ghost:4
+        image: ghost
         volumeMounts:
         - name: ghost-pvc-deploy
-          mountPath: "/var/lib/ghost/current/content"
+          mountPath: "/var/lib/ghost/content"
         ports:
         - containerPort: 2368
         env:
+        - name: url
+          value: http://ghost.home
         - name: database__client
           value: mysql
         - name: database__connection__host
