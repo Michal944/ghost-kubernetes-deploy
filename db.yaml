@@ -41,7 +41,10 @@ spec:
         - containerPort: 3306
         env:
         - name: MYSQL_ROOT_PASSWORD
-          value: ghost
+          valueFrom:
+            secretKeyRef:
+              name: ghostdb
+              key: PASSWORD
         resources:
           requests:
             memory: "512Mi"
@@ -53,36 +56,3 @@ spec:
       - name: mysql-pvc-deploy
         persistentVolumeClaim:
           claimName: mysql-pvc
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: mysql-pv
-  namespace: gh
-spec:
-  capacity:
-   storage: 20Gi
-  storageClassName: manual
-  accessModes:
-   - ReadWriteOnce
-  mountOptions:
-  - hard
-  - nfsvers=4.1
-  nfs:
-    path: /nas
-    server: 192.168.1.85
-    readOnly: false
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: mysql-pvc
-  namespace: gh
-spec:
-  storageClassName: manual
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 20Gi
-  volumeName: mysql-pv
