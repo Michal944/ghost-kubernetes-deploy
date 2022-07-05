@@ -9,6 +9,7 @@ spec:
     app: ghost-db
   ports:
     - port: 3306
+      protocol: TCP
 ---
 apiVersion: apps/v1
 kind: Deployment
