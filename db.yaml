@@ -8,10 +8,7 @@ spec:
   selector:
     app: ghost-db
   ports:
-    - name: mysqldb
-      protocol: TCP
-      port: 3306
-      targetPort: 3306
+    - port: 3306
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -32,52 +29,48 @@ spec:
     spec:
       containers:
       - name: con-ghost-db
-        image: mysql
+        image: mysql:8.0
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/mysql
         volumeMounts:
         - name: mysql-pvc-deploy
-          path: "/var/lib/mysql"
+          mountPath: "/var/lib/mysql"
         ports:
         - containerPort: 3306
         env:
-        - name: MYSQL_DATABASE
-          value: db
-        - name: MYSQL_USER
-          valueFrom:
-            name: ghostdb
-            value: USER_NAME
-        - name: MYSQL_PASSWORD
-          valueFrom:
-            name: ghostdb
-            value: PASSWORD
+        - name: MYSQL_ROOT_PASSWORD
+          value: ghost
         resources:
           requests:
-            memory: "128Mi"
-            cpu: "100m"
-          limits:
-            memory: "256Mi"
+            memory: "512Mi"
             cpu: "300m"
-    volumes:
-    - name: mysql-pvc-deploy
-      persistentVolumeClaim:
-        claimName: mysql-pvc
+          limits:
+            memory: "756Mi"
+            cpu: "600m"
+      volumes:
+      - name: mysql-pvc-deploy
+        persistentVolumeClaim:
+          claimName: mysql-pvc
 ---
 apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: mysql-pv
   namespace: gh
-  label:
-    pv: mysql-gh
 spec:
   capacity:
-   storage: 5Gi
-  volumeMode: Filesystem
+   storage: 20Gi
+  storageClassName: manual
   accessModes:
    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  storageClassName: slow
-  hostPath:
-    path: "/mnt/hgfs/mysql-ghost/"
+  mountOptions:
+  - hard
+  - nfsvers=4.1
+  nfs:
+    path: /nas
+    server: 192.168.1.85
+    readOnly: false
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -85,13 +78,10 @@ metadata:
   name: mysql-pvc
   namespace: gh
 spec:
+  storageClassName: manual
   accessModes:
     - ReadWriteOnce
-  volumeMode: Filesystem
   resources:
     requests:
-      storage: 2Gi
-  storageClassName: slow
-  selector:
-    matchLabels:
-      pv: mysql-gh
+      storage: 20Gi
+  volumeName: mysql-pv
