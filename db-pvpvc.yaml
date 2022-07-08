@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: mysql-pv
+  name: mysql-ghost-pv
   namespace: gh
 spec:
   capacity:
@@ -20,7 +20,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: mysql-pvc
+  name: mysql-ghost-pvc
   namespace: gh
 spec:
   storageClassName: manual
@@ -29,4 +29,4 @@ spec:
   resources:
     requests:
       storage: 20Gi
-  volumeName: mysql-pv
+  volumeName: mysql-ghost-pv

@@ -55,4 +55,4 @@ spec:
       volumes:
       - name: mysql-pvc-deploy
         persistentVolumeClaim:
-          claimName: mysql-pvc
+          claimName: mysql-ghost-pvc

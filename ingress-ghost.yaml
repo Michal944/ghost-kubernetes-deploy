@@ -5,12 +5,14 @@ metadata:
   namespace: gh
   annotations:
     ingress.kubernetes.io/ssl-redirect: "false"
+  #  ingress.kubernetes.io/rewrite-target: /
+  #  kubernetes.io/ingress.class: nginx
 spec:
   rules:
   - host: ghost.home
     http:
       paths:
-      - path: /ghost
+      - path: /
         pathType: Prefix
         backend:
           service:
